@@ -20,7 +20,7 @@ TypeScript package integrating Quercle web tools with Vercel AI SDK. Provides `q
 
 ### Endpoints
 
-**POST https://quercle.dev/api/v1/fetch**
+**POST https://api.quercle.dev/v1/fetch**
 ```json
 // Request
 {"url": "https://...", "prompt": "Summarize this page"}
@@ -28,7 +28,7 @@ TypeScript package integrating Quercle web tools with Vercel AI SDK. Provides `q
 {"result": "AI-processed content..."}
 ```
 
-**POST https://quercle.dev/api/v1/search**
+**POST https://api.quercle.dev/v1/search**
 ```json
 // Request
 {"query": "...", "allowed_domains": ["*.edu"], "blocked_domains": ["spam.com"]}
