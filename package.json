@@ -19,7 +19,7 @@
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
-    "@quercle/sdk": "^0.2.3",
+    "@quercle/sdk": "^0.2.4",
     "ai": "^4.0.0",
     "zod": "^3.24.0"
   },
