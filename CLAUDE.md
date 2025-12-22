@@ -65,7 +65,7 @@ import {
 
 export const quercleSearch = tool({
   description: TOOL_DESCRIPTIONS.SEARCH,
-  parameters: searchToolSchema,
+  inputSchema: searchToolSchema,  // AI SDK v5 uses inputSchema
   execute: async ({ query, allowedDomains, blockedDomains }) => {
     const client = new QuercleClient();
     return await client.search(query, { allowedDomains, blockedDomains });
@@ -74,7 +74,7 @@ export const quercleSearch = tool({
 
 export const quercleFetch = tool({
   description: TOOL_DESCRIPTIONS.FETCH,
-  parameters: fetchToolSchema,
+  inputSchema: fetchToolSchema,  // AI SDK v5 uses inputSchema
   execute: async ({ url, prompt }) => {
     const client = new QuercleClient();
     return await client.fetch(url, prompt);
@@ -95,7 +95,7 @@ bun publish             # Publish to npm
 ## Dependencies
 
 - @quercle/sdk (client, schemas, descriptions)
-- ai >= 3.0.0
+- ai >= 5.0.0 (AI SDK v5+)
 - zod
 - TypeScript 5+
 

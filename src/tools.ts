@@ -5,6 +5,8 @@ import {
   searchToolSchema,
   fetchToolSchema,
   type QuercleConfig,
+  type SearchToolInput,
+  type FetchToolInput,
 } from "@quercle/sdk";
 
 /**
@@ -25,9 +27,9 @@ import {
  * });
  * ```
  */
-export const quercleSearch = tool({
+export const quercleSearch = tool<SearchToolInput, string>({
   description: TOOL_DESCRIPTIONS.SEARCH,
-  parameters: searchToolSchema,
+  inputSchema: searchToolSchema,
   execute: async ({ query, allowedDomains, blockedDomains }) => {
     const client = new QuercleClient();
     return await client.search(query, { allowedDomains, blockedDomains });
@@ -52,9 +54,9 @@ export const quercleSearch = tool({
  * });
  * ```
  */
-export const quercleFetch = tool({
+export const quercleFetch = tool<FetchToolInput, string>({
   description: TOOL_DESCRIPTIONS.FETCH,
-  parameters: fetchToolSchema,
+  inputSchema: fetchToolSchema,
   execute: async ({ url, prompt }) => {
     const client = new QuercleClient();
     return await client.fetch(url, prompt);
@@ -88,16 +90,16 @@ export function createQuercleTools(config?: QuercleConfig) {
   const client = new QuercleClient(config);
 
   return {
-    quercleSearch: tool({
+    quercleSearch: tool<SearchToolInput, string>({
       description: TOOL_DESCRIPTIONS.SEARCH,
-      parameters: searchToolSchema,
+      inputSchema: searchToolSchema,
       execute: async ({ query, allowedDomains, blockedDomains }) => {
         return await client.search(query, { allowedDomains, blockedDomains });
       },
     }),
-    quercleFetch: tool({
+    quercleFetch: tool<FetchToolInput, string>({
       description: TOOL_DESCRIPTIONS.FETCH,
-      parameters: fetchToolSchema,
+      inputSchema: fetchToolSchema,
       execute: async ({ url, prompt }) => {
         return await client.fetch(url, prompt);
       },

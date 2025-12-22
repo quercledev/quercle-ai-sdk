@@ -8,8 +8,8 @@ describe("quercleSearch", () => {
     expect(quercleSearch.description.length).toBeGreaterThan(0);
   });
 
-  it("should have parameters schema", () => {
-    expect(quercleSearch.parameters).toBeDefined();
+  it("should have inputSchema", () => {
+    expect(quercleSearch.inputSchema).toBeDefined();
   });
 
   it("should have execute function", () => {
@@ -24,8 +24,8 @@ describe("quercleFetch", () => {
     expect(quercleFetch.description.length).toBeGreaterThan(0);
   });
 
-  it("should have parameters schema", () => {
-    expect(quercleFetch.parameters).toBeDefined();
+  it("should have inputSchema", () => {
+    expect(quercleFetch.inputSchema).toBeDefined();
   });
 
   it("should have execute function", () => {
@@ -55,9 +55,9 @@ describe("createQuercleTools", () => {
     expect(tools.quercleFetch.description).toBeDefined();
   });
 
-  it("should return tools with parameters", () => {
+  it("should return tools with inputSchema", () => {
     const tools = createQuercleTools(testConfig);
-    expect(tools.quercleSearch.parameters).toBeDefined();
-    expect(tools.quercleFetch.parameters).toBeDefined();
+    expect(tools.quercleSearch.inputSchema).toBeDefined();
+    expect(tools.quercleFetch.inputSchema).toBeDefined();
   });
 });
