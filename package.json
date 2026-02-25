@@ -1,6 +1,6 @@
 {
   "name": "@quercle/ai-sdk",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "description": "Quercle web tools for Vercel AI SDK",
   "type": "module",
   "main": "dist/index.js",
@@ -19,7 +19,7 @@
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
-    "@quercle/sdk": "^0.2.5",
+    "@quercle/sdk": "^1.0.0",
     "ai": "^5.0.124",
     "zod": "^3.25.76"
   },
@@ -40,6 +40,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "quercle",
     "ai",
