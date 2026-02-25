@@ -15,7 +15,7 @@ TypeScript package integrating Quercle web tools with Vercel AI SDK. Provides 5 
 ## Quercle API
 
 ### Authentication
-- Header: `X-API-Key: qk_...`
+- Header: `Authorization: Bearer qk_...`
 - Env var: `QUERCLE_API_KEY`
 
 ### Endpoints
