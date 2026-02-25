@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-TypeScript package integrating Quercle web tools with Vercel AI SDK. Provides `quercleSearch` and `quercleFetch` tools using the AI SDK's `tool()` function.
+TypeScript package integrating Quercle web tools with Vercel AI SDK. Provides 5 tools (`quercleSearch`, `quercleFetch`, `quercleRawSearch`, `quercleRawFetch`, `quercleExtract`) using the AI SDK's `tool()` function.
 
 ## Development Guidelines
 
@@ -20,14 +20,6 @@ TypeScript package integrating Quercle web tools with Vercel AI SDK. Provides `q
 
 ### Endpoints
 
-**POST https://api.quercle.dev/v1/fetch**
-```json
-// Request
-{"url": "https://...", "prompt": "Summarize this page"}
-// Response
-{"result": "AI-processed content..."}
-```
-
 **POST https://api.quercle.dev/v1/search**
 ```json
 // Request
@@ -36,12 +28,44 @@ TypeScript package integrating Quercle web tools with Vercel AI SDK. Provides `q
 {"result": "Synthesized answer with [1] citations...\n\nSources:\n[1] Title - URL"}
 ```
 
+**POST https://api.quercle.dev/v1/fetch**
+```json
+// Request
+{"url": "https://...", "prompt": "Summarize this page"}
+// Response
+{"result": "AI-processed content..."}
+```
+
+**POST https://api.quercle.dev/v1/raw_search**
+```json
+// Request
+{"query": "...", "format": "markdown", "use_safeguard": false}
+// Response
+{"result": "Raw search results...", "unsafe": false}
+```
+
+**POST https://api.quercle.dev/v1/raw_fetch**
+```json
+// Request
+{"url": "https://...", "format": "markdown", "use_safeguard": false}
+// Response
+{"result": "Raw page content...", "unsafe": false}
+```
+
+**POST https://api.quercle.dev/v1/extract**
+```json
+// Request
+{"url": "https://...", "query": "pricing info", "format": "markdown", "use_safeguard": false}
+// Response
+{"result": "Extracted chunks...", "unsafe": false}
+```
+
 ## Package Structure
 
 ```
 src/
-├── index.ts             # Exports quercleSearch, quercleFetch, createQuercleTools
-├── tools.ts             # AI SDK tool() definitions
+├── index.ts             # Exports all 5 tools + createQuercleTools + re-exported SDK types
+├── tools.ts             # AI SDK tool() definitions with Zod schemas
 └── tools.test.ts        # Unit tests
 dist/                    # Compiled output
 package.json
@@ -52,35 +76,47 @@ LICENSE                  # MIT
 
 ## Tool Implementation
 
-Uses `@quercle/sdk` for client, schemas, and descriptions:
+Uses `@quercle/sdk` for client and `toolMetadata` for descriptions. Zod schemas are defined locally in `tools.ts`.
 
 ```typescript
 import { tool } from "ai";
-import {
-  QuercleClient,
-  TOOL_DESCRIPTIONS,
-  searchToolSchema,
-  fetchToolSchema,
-} from "@quercle/sdk";
+import { QuercleClient, toolMetadata, type QuercleClientOptions } from "@quercle/sdk";
+import { z } from "zod";
 
-export const quercleSearch = tool({
-  description: TOOL_DESCRIPTIONS.SEARCH,
-  inputSchema: searchToolSchema,  // AI SDK v5 uses inputSchema
-  execute: async ({ query, allowedDomains, blockedDomains }) => {
-    const client = new QuercleClient();
-    return await client.search(query, { allowedDomains, blockedDomains });
-  },
+// Zod schemas defined locally using toolMetadata for parameter descriptions
+const searchToolSchema = z.object({
+  query: z.string().describe(toolMetadata.search.parameters.query),
+  allowedDomains: z.array(z.string()).optional().describe(toolMetadata.search.parameters.allowed_domains),
+  blockedDomains: z.array(z.string()).optional().describe(toolMetadata.search.parameters.blocked_domains),
 });
 
-export const quercleFetch = tool({
-  description: TOOL_DESCRIPTIONS.FETCH,
-  inputSchema: fetchToolSchema,  // AI SDK v5 uses inputSchema
-  execute: async ({ url, prompt }) => {
-    const client = new QuercleClient();
-    return await client.fetch(url, prompt);
+// Shared default client, lazily initialized
+let _defaultClient: QuercleClient | undefined;
+function getDefaultClient(): QuercleClient {
+  if (!_defaultClient) _defaultClient = new QuercleClient();
+  return _defaultClient;
+}
+
+export const quercleSearch = tool({
+  description: toolMetadata.search.description,
+  inputSchema: searchToolSchema,
+  execute: async ({ query, allowedDomains, blockedDomains }) => {
+    return (await getDefaultClient().search(query, { allowedDomains, blockedDomains })).result;
   },
 });
 ```
+
+### All 5 Tools
+
+| Tool | Description | Client method | Returns |
+|------|-------------|---------------|---------|
+| `quercleSearch` | AI-synthesized search with citations | `client.search()` | `.result` (string) |
+| `quercleFetch` | Fetch URL + AI analysis | `client.fetch()` | `.result` (string) |
+| `quercleRawSearch` | Raw web search results | `client.rawSearch()` | `formatRawResult(.result, .unsafe)` |
+| `quercleRawFetch` | Raw URL content (markdown/HTML) | `client.rawFetch()` | `formatRawResult(.result, .unsafe)` |
+| `quercleExtract` | Extract relevant chunks from URL | `client.extract()` | `formatRawResult(.result, .unsafe)` |
+
+Raw/extract tools use `formatRawResult()` which prefixes `[UNSAFE] ` when the response is flagged.
 
 ## Commands
 
@@ -94,22 +130,28 @@ bun publish             # Publish to npm
 
 ## Dependencies
 
-- @quercle/sdk (client, schemas, descriptions)
+- @quercle/sdk ^1.0.0 (client, toolMetadata)
 - ai >= 5.0.0 (AI SDK v5+)
-- zod
+- zod ^3.x
 - TypeScript 5+
 
 ## Usage Example
 
 ```typescript
-import { quercleSearch, quercleFetch } from "@quercle/ai-sdk";
+import {
+  quercleSearch,
+  quercleFetch,
+  quercleRawSearch,
+  quercleRawFetch,
+  quercleExtract,
+} from "@quercle/ai-sdk";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 
-// Use with generateText
+// Use all 5 tools with generateText
 const result = await generateText({
   model: openai("gpt-4o"),
-  tools: { quercleSearch, quercleFetch },
+  tools: { quercleSearch, quercleFetch, quercleRawSearch, quercleRawFetch, quercleExtract },
   prompt: "Search for the latest news about AI and summarize",
 });
 
@@ -118,7 +160,7 @@ import { streamText } from "ai";
 
 const stream = streamText({
   model: openai("gpt-4o"),
-  tools: { quercleSearch, quercleFetch },
+  tools: { quercleSearch, quercleFetch, quercleRawSearch, quercleRawFetch, quercleExtract },
   prompt: "Find information about TypeScript 5",
 });
 
@@ -132,9 +174,8 @@ for await (const chunk of stream.textStream) {
 ```typescript
 import { createQuercleTools } from "@quercle/ai-sdk";
 
-const { quercleSearch, quercleFetch } = createQuercleTools({
-  apiKey: "qk_...",
-});
+const { quercleSearch, quercleFetch, quercleRawSearch, quercleRawFetch, quercleExtract } =
+  createQuercleTools({ apiKey: "qk_..." });
 ```
 
 ## Publishing
